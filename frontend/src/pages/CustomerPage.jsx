@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api';
 import Carousel from '../components/Carousel';
 
 export default function CustomerPage() {
@@ -10,7 +10,7 @@ export default function CustomerPage() {
     useEffect(() => {
         const fetchActiveImages = async () => {
             try {
-                const res = await axios.get('/api/images/active');
+                const res = await api.get('/api/images/active');
                 setImages(res.data);
             } catch (err) {
                 setError('Failed to load promotions');

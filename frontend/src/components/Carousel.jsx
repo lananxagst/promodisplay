@@ -32,14 +32,14 @@ export default function Carousel({ images }) {
 
     return (
         <div className="carousel">
-            <div className="carousel-track">
+            <div className="carousel-track" style={{ position: 'absolute', width: '100%', height: '100%' }}>
                 {images.map((img, index) => (
                     <div
                         key={img._id}
                         className={`carousel-slide ${index === current ? 'active' : ''}`}
                     >
                         <img
-                            src={img.path}
+                            src={`${import.meta.env.VITE_API_URL || ''}${img.path}`}
                             alt={img.name}
                             className="carousel-img"
                         />

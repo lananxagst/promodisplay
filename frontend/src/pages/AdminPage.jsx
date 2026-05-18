@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import api from '../api';
 
 export default function AdminPage() {
     const [images, setImages] = useState([]);
@@ -16,7 +16,7 @@ export default function AdminPage() {
 
     const fetchImages = async () => {
         try {
-            const res = await axios.get('/api/images');
+            const res = await api.get('/api/images');
             setImages(res.data);
         } catch {
             showNotification('Failed to fetch images', 'error');
@@ -42,7 +42,7 @@ export default function AdminPage() {
             try {
                 const formData = new FormData();
                 formData.append('image', file);
-                const res = await axios.post('/api/images', formData, {
+                const res = await api.post('/api/images', formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
                 setImages((prev) => [res.data, ...prev]);
@@ -58,7 +58,7 @@ export default function AdminPage() {
 
     const handleToggle = async (id) => {
         try {
-            const res = await axios.patch(`/api/images/${id}/toggle`);
+            const res = await api.patch(`/api/images/${id}/toggle`);
             setImages((prev) =>
                 prev.map((img) => (img._id === id ? res.data : img))
             );
@@ -74,7 +74,7 @@ export default function AdminPage() {
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this image?')) return;
         try {
-            await axios.delete(`/api/images/${id}`);
+            await api.delete(`/api/images/${id}`);
             setImages((prev) => prev.filter((img) => img._id !== id));
             showNotification('Image deleted');
         } catch {
@@ -164,7 +164,7 @@ export default function AdminPage() {
                                     className={`image-card ${img.isActive ? 'active' : 'inactive'}`}
                                 >
                                     <div className="image-card-thumb">
-                                        <img src={img.path} alt={img.name} />
+                                        <img src={`${import.meta.env.VITE_API_URL || ''}${img.path}`} alt={img.name} />
                                         <div className={`status-badge ${img.isActive ? 'badge-active' : 'badge-inactive'}`}>
                                             {img.isActive ? 'Active' : 'Inactive'}
                                         </div>
