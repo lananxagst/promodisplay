@@ -17,7 +17,7 @@ export default function AdminPage() {
     const fetchImages = async () => {
         try {
             const res = await api.get('/api/images');
-            setImages(res.data);
+            setImages(Array.isArray(res.data) ? res.data : []);
         } catch {
             showNotification('Failed to fetch images', 'error');
         } finally {

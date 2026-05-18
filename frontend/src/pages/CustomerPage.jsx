@@ -11,7 +11,7 @@ export default function CustomerPage() {
         const fetchActiveImages = async () => {
             try {
                 const res = await api.get('/api/images/active');
-                setImages(res.data);
+                setImages(Array.isArray(res.data) ? res.data : []);
             } catch (err) {
                 setError('Failed to load promotions');
             } finally {
