@@ -32,7 +32,7 @@ export default function Carousel({ images }) {
 
     return (
         <div className="carousel">
-            <div className="carousel-track" style={{ position: 'absolute', width: '100%', height: '100%' }}>
+            <div className="carousel-track">
                 {images.map((img, index) => (
                     <div
                         key={img._id}
