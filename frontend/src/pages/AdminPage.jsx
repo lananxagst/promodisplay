@@ -164,7 +164,7 @@ export default function AdminPage() {
                                     className={`image-card ${img.isActive ? 'active' : 'inactive'}`}
                                 >
                                     <div className="image-card-thumb">
-                                        <img src={`${import.meta.env.VITE_API_URL || ''}${img.path}`} alt={img.name} />
+                                        <img src={img.path} alt={img.name} />
                                         <div className={`status-badge ${img.isActive ? 'badge-active' : 'badge-inactive'}`}>
                                             {img.isActive ? 'Active' : 'Inactive'}
                                         </div>

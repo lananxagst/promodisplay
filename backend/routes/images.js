@@ -1,38 +1,34 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const streamifier = require('streamifier');
+const cloudinary = require('../config/cloudinary');
 const Image = require('../models/Image');
 
-const uploadDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-        const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-        cb(null, `${unique}${path.extname(file.originalname)}`);
-    }
-});
-
-const fileFilter = (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
-        cb(null, true);
-    } else {
-        cb(new Error('Only image files are allowed'), false);
-    }
-};
-
 const upload = multer({
-    storage,
-    fileFilter,
+    storage: multer.memoryStorage(),
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only image files are allowed'), false);
+        }
+    },
     limits: { fileSize: 10 * 1024 * 1024 }
 });
+
+const uploadToCloudinary = (buffer) => {
+    return new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+            { folder: 'promodisplay', transformation: [{ quality: 'auto', fetch_format: 'auto' }] },
+            (error, result) => {
+                if (error) reject(error);
+                else resolve(result);
+            }
+        );
+        streamifier.createReadStream(buffer).pipe(uploadStream);
+    });
+};
 
 // GET /api/images - semua gambar untuk admin
 router.get('/', async (req, res) => {
@@ -61,10 +57,12 @@ router.post('/', upload.single('image'), async (req, res) => {
             return res.status(400).json({ error: 'No image file provided' });
         }
 
+        const result = await uploadToCloudinary(req.file.buffer);
+
         const image = new Image({
             name: req.file.originalname,
-            filename: req.file.filename,
-            path: `/uploads/${req.file.filename}`
+            cloudinaryId: result.public_id,
+            path: result.secure_url
         });
 
         await image.save();
@@ -91,7 +89,7 @@ router.patch('/:id/toggle', async (req, res) => {
     }
 });
 
-// DELETE /api/images/:id - hapus gambar
+// DELETE /api/images/:id - hapus gambar dari Cloudinary & MongoDB
 router.delete('/:id', async (req, res) => {
     try {
         const image = await Image.findById(req.params.id);
@@ -99,9 +97,10 @@ router.delete('/:id', async (req, res) => {
             return res.status(404).json({ error: 'Image not found' });
         }
 
-        const filePath = path.join(__dirname, '..', image.path);
-        if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
+        if (image.cloudinaryId) {
+            await cloudinary.uploader.destroy(image.cloudinaryId).catch((err) => {
+                console.warn('Cloudinary destroy skipped:', err.message);
+            });
         }
 
         await image.deleteOne();

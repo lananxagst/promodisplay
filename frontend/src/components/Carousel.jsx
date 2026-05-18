@@ -39,7 +39,7 @@ export default function Carousel({ images }) {
                         className={`carousel-slide ${index === current ? 'active' : ''}`}
                     >
                         <img
-                            src={`${import.meta.env.VITE_API_URL || ''}${img.path}`}
+                            src={img.path}
                             alt={img.name}
                             className="carousel-img"
                         />

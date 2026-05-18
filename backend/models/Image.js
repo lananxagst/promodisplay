@@ -5,7 +5,7 @@ const imageSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    filename: {
+    cloudinaryId: {
         type: String,
         required: true
     },
