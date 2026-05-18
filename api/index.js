@@ -5,7 +5,7 @@ let isConnected = false;
 
 const connectDB = async () => {
     if (isConnected) return;
-    await mongoose.connect(process.env.MONGODB_URI);
+    await mongoose.connect(process.env.MONGODB_URI, { tls: true, tlsAllowInvalidCertificates: false });
     isConnected = true;
 };
 
